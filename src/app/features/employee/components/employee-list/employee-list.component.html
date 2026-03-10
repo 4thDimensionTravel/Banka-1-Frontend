@@ -6,7 +6,7 @@
     </div>
     
     <div style="display: flex; gap: 16px;">
-      <button class="btn-add">+ Add employee</button>
+      <button class="btn-add" routerLink="/create-employee">+ Add employee</button>
       
       <button class="btn-add" style="background-color: transparent; border: 1px solid white;" (click)="onLogout()">
         Logout
@@ -99,9 +99,9 @@
   </div>
 </div>
 
-<app-employee-edit-modal 
+<app-employee-create-modal>
   *ngIf="isEditModalOpen && selectedEmployeeForEdit" 
   [employee]="selectedEmployeeForEdit" 
   (save)="onEmployeeSaved($event)" 
   (cancel)="closeEditModal()">
-</app-employee-edit-modal>
+</app-employee-create-modal>

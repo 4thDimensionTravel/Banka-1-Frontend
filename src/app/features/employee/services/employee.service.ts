@@ -1,11 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { Employee } from '../models/employee';
+import { environment } from '../../../../environments/environment'; 
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EmployeeService {
+  private apiUrl = `${environment.apiUrl}/employees`;
+  constructor(private http: HttpClient) {}
   private mockEmployees: Employee[] = [
     {
       id: 1, firstName: 'Marko', lastName: 'Marković', email: 'marko.markovic@company.com',
@@ -27,7 +31,9 @@ export class EmployeeService {
     }
   ];
 
-  constructor() {}
+  createEmployee(employeeData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/employees`, employeeData);
+  }
   // Metoda za brisanje (simulacija API poziva)
   deleteEmployee(id: number): Observable<boolean> {
     // Filtriramo niz tako da izbacimo onog sa prosleđenim ID-jem

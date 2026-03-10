@@ -1,0 +1,81 @@
+<div class="page-wrapper">
+  <header class="top-header">
+    <div class="header-text">
+      <h1>Add New Employee</h1>
+      <p>Unos novog zaposlenog u sistem</p>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <div class="form-card">
+      <form [formGroup]="employeeForm" (ngSubmit)="onSubmit()" class="figma-form">
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">First Name <span class="text-danger">*</span></label>
+            <input id="firstName" type="text" formControlName="firstName" placeholder="e.g. Marko"
+                   [class.input-error]="employeeForm.get('firstName')?.invalid && employeeForm.get('firstName')?.touched">
+            <span class="error-message" *ngIf="employeeForm.get('firstName')?.invalid && employeeForm.get('firstName')?.touched">
+              Ime je obavezno i mora imati bar 2 karaktera.
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="lastName">Last Name <span class="text-danger">*</span></label>
+            <input id="lastName" type="text" formControlName="lastName" placeholder="e.g. Markovic"
+                   [class.input-error]="employeeForm.get('lastName')?.invalid && employeeForm.get('lastName')?.touched">
+            <span class="error-message" *ngIf="employeeForm.get('lastName')?.invalid && employeeForm.get('lastName')?.touched">
+              Prezime je obavezno i mora imati bar 2 karaktera.
+            </span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">Email <span class="text-danger">*</span></label>
+            <input id="email" type="email" formControlName="email" placeholder="marko@banka.rs"
+                   [class.input-error]="employeeForm.get('email')?.invalid && employeeForm.get('email')?.touched">
+            <span class="error-message" *ngIf="employeeForm.get('email')?.invalid && employeeForm.get('email')?.touched">
+              Unesite validnu email adresu.
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="phoneNumber">Phone Number <span class="text-danger">*</span></label>
+            <input id="phoneNumber" type="text" formControlName="phoneNumber" placeholder="+381601234567"
+                   [class.input-error]="employeeForm.get('phoneNumber')?.invalid && employeeForm.get('phoneNumber')?.touched">
+            <span class="error-message" *ngIf="employeeForm.get('phoneNumber')?.invalid && employeeForm.get('phoneNumber')?.touched">
+              Broj telefona je obavezan.
+            </span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="birthDate">Birth Date <span class="text-danger">*</span></label>
+            <input id="birthDate" type="date" formControlName="birthDate"
+                   [class.input-error]="employeeForm.get('birthDate')?.invalid && employeeForm.get('birthDate')?.touched">
+            <span class="error-message" *ngIf="employeeForm.get('birthDate')?.invalid && employeeForm.get('birthDate')?.touched">
+              Datum rođenja je obavezan.
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="gender">Gender <span class="text-danger">*</span></label>
+            <select id="gender" formControlName="gender" class="custom-select"
+                    [class.input-error]="employeeForm.get('gender')?.invalid && employeeForm.get('gender')?.touched">
+              <option value="M">Male (M)</option>
+              <option value="Z">Female (Z)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" routerLink="/employees">Cancel</button>
+          <button type="submit" class="btn-submit" [disabled]="employeeForm.invalid">Save Employee</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>

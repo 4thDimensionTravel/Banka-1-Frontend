@@ -5,20 +5,24 @@ import { FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { ReactiveFormsModule } from '@angular/forms';
 import { EmployeeListComponent } from './features/employee/components/employee-list/employee-list.component';
 import { EmployeeEditComponent } from './features/employee/components/employee-edit/employee-edit.component';
-import { AuthInterceptor } from './core/interceptors/auth.interceptor'; 
+import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+import { EmployeeCreateComponent } from './features/employee/components/employee-create/employee-create.component'; 
 
 @NgModule({
   declarations: [
     AppComponent,
     EmployeeListComponent,
-    EmployeeEditComponent
+    EmployeeEditComponent,
+    EmployeeCreateComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule, 
+    ReactiveFormsModule,
     FormsModule       
   ],
   providers: [
