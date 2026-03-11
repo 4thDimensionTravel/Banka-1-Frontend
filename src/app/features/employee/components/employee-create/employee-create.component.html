@@ -1,81 +1,70 @@
 <div class="page-wrapper">
-  <header class="top-header">
+  <div class="form-card">
+    
     <div class="header-text">
-      <h1>Add New Employee</h1>
-      <p>Unos novog zaposlenog u sistem</p>
+      <h2>Create employee</h2>
+      <p>Fill in the details to create a new employee account.</p>
     </div>
-  </header>
 
-  <div class="main-content">
-    <div class="form-card">
-      <form [formGroup]="employeeForm" (ngSubmit)="onSubmit()" class="figma-form">
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label for="firstName">First Name <span class="text-danger">*</span></label>
-            <input id="firstName" type="text" formControlName="firstName" placeholder="e.g. Marko"
-                   [class.input-error]="employeeForm.get('firstName')?.invalid && employeeForm.get('firstName')?.touched">
-            <span class="error-message" *ngIf="employeeForm.get('firstName')?.invalid && employeeForm.get('firstName')?.touched">
-              Ime je obavezno i mora imati bar 2 karaktera.
-            </span>
-          </div>
+    <form [formGroup]="employeeForm" (ngSubmit)="onSubmit()" class="figma-form">
+      
+      <div class="form-group">
+        <label for="fullName">Full name</label>
+        <input id="fullName" type="text" formControlName="fullName" placeholder="Enter full name">
+        <small *ngIf="employeeForm.get('fullName')?.touched && employeeForm.get('fullName')?.invalid" class="error-msg">
+          Full name is required (min 3 chars).
+        </small>
+      </div>
 
-          <div class="form-group">
-            <label for="lastName">Last Name <span class="text-danger">*</span></label>
-            <input id="lastName" type="text" formControlName="lastName" placeholder="e.g. Markovic"
-                   [class.input-error]="employeeForm.get('lastName')?.invalid && employeeForm.get('lastName')?.touched">
-            <span class="error-message" *ngIf="employeeForm.get('lastName')?.invalid && employeeForm.get('lastName')?.touched">
-              Prezime je obavezno i mora imati bar 2 karaktera.
-            </span>
-          </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" type="email" formControlName="email" placeholder="Enter email address">
+      </div>
+
+      <div class="form-group">
+        <label for="role">Role</label>
+        <select id="role" formControlName="role">
+          <option value="Regular employee">Regular employee</option>
+          <option value="Manager">Manager</option>
+          <option value="Admin">Admin</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="status">Status</label>
+        <select id="status" formControlName="status">
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+      </div>
+
+      <div class="permissions-section">
+        <h3>Permissions</h3>
+        <div class="permissions-grid">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="permCreate">
+            <span class="checkmark"></span> Create
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="permEdit">
+            <span class="checkmark"></span> Edit
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="permDelete">
+            <span class="checkmark"></span> Delete
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="permView">
+            <span class="checkmark"></span> View
+          </label>
         </div>
+      </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="email">Email <span class="text-danger">*</span></label>
-            <input id="email" type="email" formControlName="email" placeholder="marko@banka.rs"
-                   [class.input-error]="employeeForm.get('email')?.invalid && employeeForm.get('email')?.touched">
-            <span class="error-message" *ngIf="employeeForm.get('email')?.invalid && employeeForm.get('email')?.touched">
-              Unesite validnu email adresu.
-            </span>
-          </div>
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" routerLink="/employees">Cancel</button>
+        <button type="submit" class="btn-submit" [disabled]="employeeForm.invalid">Create employee</button>
+      </div>
 
-          <div class="form-group">
-            <label for="phoneNumber">Phone Number <span class="text-danger">*</span></label>
-            <input id="phoneNumber" type="text" formControlName="phoneNumber" placeholder="+381601234567"
-                   [class.input-error]="employeeForm.get('phoneNumber')?.invalid && employeeForm.get('phoneNumber')?.touched">
-            <span class="error-message" *ngIf="employeeForm.get('phoneNumber')?.invalid && employeeForm.get('phoneNumber')?.touched">
-              Broj telefona je obavezan.
-            </span>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="birthDate">Birth Date <span class="text-danger">*</span></label>
-            <input id="birthDate" type="date" formControlName="birthDate"
-                   [class.input-error]="employeeForm.get('birthDate')?.invalid && employeeForm.get('birthDate')?.touched">
-            <span class="error-message" *ngIf="employeeForm.get('birthDate')?.invalid && employeeForm.get('birthDate')?.touched">
-              Datum rođenja je obavezan.
-            </span>
-          </div>
-
-          <div class="form-group">
-            <label for="gender">Gender <span class="text-danger">*</span></label>
-            <select id="gender" formControlName="gender" class="custom-select"
-                    [class.input-error]="employeeForm.get('gender')?.invalid && employeeForm.get('gender')?.touched">
-              <option value="M">Male (M)</option>
-              <option value="Z">Female (Z)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button type="button" class="btn-cancel" routerLink="/employees">Cancel</button>
-          <button type="submit" class="btn-submit" [disabled]="employeeForm.invalid">Save Employee</button>
-        </div>
-
-      </form>
-    </div>
+    </form>
   </div>
 </div>
