@@ -15,8 +15,7 @@ import {AccountDetailsModalComponent} from "../client/modals/account-details-mod
     LoginComponent,
     ForgotPasswordComponent,
     ResetPasswordComponent,
-    ActivateAccountComponent,
-    AccountDetailsModalComponent
+    ActivateAccountComponent
   ],
   imports: [
     CommonModule,

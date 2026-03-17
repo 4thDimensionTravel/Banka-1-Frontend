@@ -1,5 +1,5 @@
 <div class="modal-overlay" (click)="closeModal()">
-  <div class="modal-shell" (click)="$event.stopPropagation()">
+  <div class="modal-shell" (click)="$event.stopPropagation()" *ngIf="account">
     <div class="bg-decoration">
       <div class="bg-circle bg-circle-1"></div>
       <div class="bg-circle bg-circle-2"></div>
@@ -27,7 +27,7 @@
         <div class="details-grid">
           <div class="detail-row">
             <span class="detail-label">Account name</span>
-            <span class="detail-value">{{ account.accountName }}</span>
+            <span class="detail-value">{{ account.name }}</span>
           </div>
 
           <div class="detail-row">
@@ -41,28 +41,28 @@
           </div>
 
           <div class="detail-row">
-            <span class="detail-label">Account type</span>
-            <span class="detail-value">{{ account.accountType }}</span>
+            <span class="detail-label">Type</span>
+            <span class="detail-value">{{ getAccountTypeLabel() }}</span>
           </div>
 
           <div class="detail-row">
-            <span class="detail-label">Available balance</span>
+            <span class="detail-label">Available resources</span>
             <span class="detail-value">
-              {{ account.availableBalance }} {{ account.currency }}
+              {{ formatAmount(account.availableBalance) }} {{ account.currency }}
             </span>
           </div>
 
           <div class="detail-row">
-            <span class="detail-label">Reserved funds</span>
+            <span class="detail-label">Reserved resources</span>
             <span class="detail-value">
-              {{ account.reservedFunds }} {{ account.currency }}
+              {{ formatAmount(account.reservedFunds) }} {{ account.currency }}
             </span>
           </div>
 
           <div class="detail-row detail-row-balance">
-            <span class="detail-label">Account balance</span>
+            <span class="detail-label">Balance</span>
             <span class="detail-value detail-value-strong">
-              {{ account.currentBalance }} {{ account.currency }}
+              {{ formatAmount(account.balance) }} {{ account.currency }}
             </span>
           </div>
         </div>
@@ -82,7 +82,7 @@
             <span class="option-arrow">&gt;</span>
           </button>
 
-          <button type="button" class="option-item" (click)="onChangeLimit()">
+          <button type="button" class="option-item option-item-limit" (click)="onChangeLimit()">
             <span class="option-text">Change limit</span>
             <span class="option-arrow">&gt;</span>
           </button>
