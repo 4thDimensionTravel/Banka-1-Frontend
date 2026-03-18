@@ -21,6 +21,15 @@ export type AccountSubtype =
   | 'FOREIGN_PERSONAL'
   | 'FOREIGN_BUSINESS';
 
+export interface CompanyInfo {
+  name: string;
+  registrationNumber?: string;
+  taxId?: string;
+  activityCode?: string;
+  address?: string;
+  ownerName?: string;
+}
+
 export interface Account {
   id: number;
   /** Naziv računa, može se menjati */
@@ -59,6 +68,9 @@ export interface Account {
   createdAt: string;
   /** Datum isteka */
   expiryDate: string;
+
+  company?: CompanyInfo;
+  companyName?: string;
 }
 export interface ChangeLimitDto {
   dailyLimit: number;
