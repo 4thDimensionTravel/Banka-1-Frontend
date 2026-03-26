@@ -28,12 +28,6 @@ export class PaymentRecipientsComponent implements OnInit {
   public formLoading = false;
   private editingId: number | null = null;
 
-  // Mock podaci — ukloniti kada backend bude spreman
-  private readonly mockRecipients: PaymentRecipient[] = [
-    { id: 1, name: 'Pera Perić',   accountNumber: '265000000923124323' },
-    { id: 2, name: 'Maja Nikolić', accountNumber: '265000000923124325' }
-  ];
-
   constructor(private readonly clientService: ClientService) {}
 
   public ngOnInit(): void {
@@ -54,8 +48,7 @@ export class PaymentRecipientsComponent implements OnInit {
         this.isLoading = false;
       },
       error: () => {
-        // TODO: ukloniti mock kada backend bude spreman
-        this.recipients = [...this.mockRecipients];
+        this.recipients = [];
         this.applyFilter();
         this.isLoading = false;
       }

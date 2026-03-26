@@ -35,21 +35,6 @@ export class AccountCardsPlaceholderComponent implements OnInit {
     this.ownershipType = this.route.snapshot.queryParamMap.get('ownershipType') || '';
     this.accountType = this.route.snapshot.queryParamMap.get('accountType') || '';
     this.status = this.route.snapshot.queryParamMap.get('status') || '';
-
-    this.cards = [
-      {
-        cardNumber: '4578 ******** 1123',
-        ownerName: this.ownerName || 'Marko Markovic',
-        ownerEmail: 'marko@example.com',
-        status: 'Aktivna'
-      },
-      {
-        cardNumber: '5210 ******** 8842',
-        ownerName: this.ownerName || 'Marko Markovic',
-        ownerEmail: 'marko@example.com',
-        status: 'Blokirana'
-      }
-    ];
   }
 
   trackByCard(index: number, card: AccountCardPlaceholder): string {

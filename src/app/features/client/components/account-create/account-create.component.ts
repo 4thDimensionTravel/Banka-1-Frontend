@@ -251,7 +251,7 @@ export class AccountCreateComponent implements OnInit, OnDestroy {
     const createCard = this.form.get('createCard')?.value;
     const initialBalance = this.form.get('initialBalance')?.value;
 
-    if (this.selectedKind === AccountKind.FX) {
+    if (this.selectedKind === AccountKind.FX) {      
       const payload: FxAccountCreatePayload = {
         nazivRacuna: '',
         idVlasnika: ownerId,

@@ -7,7 +7,7 @@ import { Payment, PaymentPage, PaymentFilters } from '../models/payment.model';
 
 @Injectable({ providedIn: 'root' })
 export class PaymentService {
-  private readonly baseUrl = `${environment.apiUrl}/payments`;
+  private readonly baseUrl = `${environment.apiUrl}/transactions/api/payments`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -24,23 +24,23 @@ export class PaymentService {
       .set('size', size.toString());
     
     if (filters.dateFrom) {
-      params = params.set('dateFrom', filters.dateFrom);
+      params = params.set('fromDate', filters.dateFrom);
     }
     if (filters.dateTo) {
-      params = params.set('dateTo', filters.dateTo);
+      params = params.set('toDate', filters.dateTo);
     }
     if (filters.amountFrom !== undefined) {
-      params = params.set('amountFrom', filters.amountFrom.toString());
+      params = params.set('initialAmountMin', filters.amountFrom.toString());
+      params = params.set('finalAmountMin', filters.amountFrom.toString());
     }
     if (filters.amountTo !== undefined) {
-      params = params.set('amountTo', filters.amountTo.toString());
+      params = params.set('initialAmountMax', filters.amountTo.toString());
+      params = params.set('finalAmountMax', filters.amountTo.toString());
     }
     if (filters.status) {
       params = params.set('status', filters.status);
     }
-    if (filters.type) {
-      params = params.set('type', filters.type);
-    }
+    
     
     return this.http.get<PaymentPage>(this.baseUrl, { params });
   }

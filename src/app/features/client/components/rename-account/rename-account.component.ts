@@ -70,7 +70,7 @@ export class RenameAccountComponent implements OnInit {
     if (this.renameForm.valid) {
       // Trimujemo pre slanja na backend da ne bismo slali prazna mesta
       const newName = this.renameForm.value.newName.trim(); 
-      this.accountService.renameAccount(this.account.id, newName).subscribe(() => {
+      this.accountService.renameAccount(+this.account.accountNumber, newName).subscribe(() => {
         this.updated.emit(newName);
         this.onCancel();
       });

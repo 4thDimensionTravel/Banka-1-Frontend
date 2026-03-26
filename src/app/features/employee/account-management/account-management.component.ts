@@ -137,7 +137,7 @@ export class AccountManagementComponent implements OnInit {
     const targetStatus = active ? 'INACTIVE' : 'ACTIVE';
 
     this.accountService
-      .updateAccountStatus(account.id, targetStatus as 'ACTIVE' | 'INACTIVE')
+      .updateAccountStatus(+account.accountNumber, targetStatus as 'ACTIVE' | 'INACTIVE')
       .subscribe({
         next: () => {
           account.status = targetStatus as Account['status'];
