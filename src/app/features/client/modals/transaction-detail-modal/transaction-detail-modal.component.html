@@ -30,15 +30,15 @@
         </div>
         <div class="flex justify-between items-center px-4 py-2.5 bg-card">
           <span class="text-sm text-muted-foreground">Početni iznos</span>
-          <span class="text-sm font-medium">{{ formatAmount(payment.initialAmount) }} {{ payment.currency }}</span>
+          <span class="text-sm font-medium">{{ formatAmount(payment.initialAmount) }} {{ payment.fromCurrency ?? payment.currency }}</span>
         </div>
         <div class="flex justify-between items-center px-4 py-2.5 bg-card">
           <span class="text-sm text-muted-foreground">Krajnji iznos</span>
-          <span class="text-sm font-medium">{{ formatAmount(payment.finalAmount) }} {{ payment.currency }}</span>
+          <span class="text-sm font-medium">{{ formatAmount(payment.finalAmount) }} {{ payment.finalCurrency ?? payment.currency }}</span>
         </div>
         <div class="flex justify-between items-center px-4 py-2.5 bg-card">
           <span class="text-sm text-muted-foreground">Provizija</span>
-          <span class="text-sm font-medium">{{ formatAmount(payment.fee) }} {{ payment.currency }}</span>
+          <span class="text-sm font-medium">{{ formatAmount(payment.fee) }} {{ payment.fromCurrency ?? payment.currency }}</span>
         </div>
         <div class="flex justify-between items-center px-4 py-2.5 bg-card">
           <span class="text-sm text-muted-foreground">Šifra plaćanja</span>

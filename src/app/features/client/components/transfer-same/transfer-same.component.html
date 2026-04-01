@@ -36,9 +36,9 @@
       <form [formGroup]="transferForm" (ngSubmit)="onContinue()" class="p-6 space-y-5" data-cy="transfer-same-form">
         <div>
           <label class="z-label" for="fromAccount">Sa računa</label>
-          <select id="fromAccount" class="z-select" formControlName="fromAccountId" (change)="onFromAccountChange()" data-cy="from-account-select">
+          <select id="fromAccount" class="z-select" formControlName="fromAccountNumber" (change)="onFromAccountChange()" data-cy="from-account-select">
             <option [ngValue]="null" disabled>Izaberite izvorni račun</option>
-            <option *ngFor="let acc of accounts" [value]="acc.id">{{ formatAccountLabel(acc) }}</option>
+            <option *ngFor="let acc of accounts" [value]="acc.accountNumber">{{ formatAccountLabel(acc) }}</option>
           </select>
         </div>
 
@@ -51,10 +51,10 @@
 
         <div>
           <label class="z-label" for="toAccount">Na račun</label>
-          <select id="toAccount" class="z-select" formControlName="toAccountId" (change)="onToAccountChange()"
+          <select id="toAccount" class="z-select" formControlName="toAccountNumber" (change)="onToAccountChange()"
                   [attr.disabled]="!selectedFromAccount || filteredToAccounts.length === 0 ? '' : null" data-cy="to-account-select">
             <option [ngValue]="null" disabled>Izaberite odredišni račun</option>
-            <option *ngFor="let acc of filteredToAccounts" [value]="acc.id">{{ formatAccountLabel(acc) }}</option>
+            <option *ngFor="let acc of filteredToAccounts" [value]="acc.accountNumber">{{ formatAccountLabel(acc) }}</option>
           </select>
           <div *ngIf="noMatchMessage" data-cy="no-match-message"
                class="flex items-center gap-2 mt-2 px-3 py-2 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm">
@@ -152,6 +152,8 @@
 
 <app-verification-modal
   *ngIf="showVerificationModal"
+  operationType="TRANSFER"
+  [relatedEntityId]="selectedFromAccount?.accountNumber || ''"
   (confirmed)="handleVerification($event)"
   (closed)="showVerificationModal = false">
 </app-verification-modal>

@@ -14,14 +14,17 @@ import { environment } from '../../../../../environments/environment';
   styleUrls: ['./verification-modal.component.scss']
 })
 export class VerificationModalComponent implements OnInit {
-  @Output() confirmed = new EventEmitter<boolean>();
+  @Input() operationType: string = 'TRANSFER';
+  @Input() relatedEntityId: string = '';
+
+  @Output() confirmed = new EventEmitter<number>();
   @Output() closed = new EventEmitter<void>();
 
   verificationCode: string = '';
   attempts: number = 0;
   readonly maxAttempts: number = 3;
-  codeSent = false;
   isSendingCode = false;
+  sessionId: number | null = null;
 
   constructor(
     private toastService: ToastService,
@@ -35,47 +38,48 @@ export class VerificationModalComponent implements OnInit {
 
   sendVerificationCode(): void {
     this.isSendingCode = true;
-    const user = this.authService.getLoggedUser();
-    const email = user?.email;
+    const clientId = this.authService.getUserIdFromToken();
+    const clientEmail = this.authService.getLoggedUser()?.email;
 
-    if (!email) {
+    if (!clientId || !clientEmail) {
       this.toastService.error('Nije moguće poslati verifikacioni kod.');
       this.isSendingCode = false;
-      this.codeSent = true;
       return;
     }
 
-    this.http.post(`${environment.apiUrl}/clients/auth/send-verification`, { email }, { responseType: 'text' })
-      .subscribe({
-        next: () => {
-          this.codeSent = true;
-          this.isSendingCode = false;
-          this.toastService.info('Verifikacioni kod je poslat na vaš email.');
-        },
-        error: () => {
-          this.codeSent = true;
-          this.isSendingCode = false;
-          this.toastService.warning('Kod nije poslat - koristite testni kod: 1234');
-        }
-      });
+    this.http.post<{ sessionId: number }>(
+      `${environment.apiUrl}/verification/generate`,
+      {
+        clientId,
+        operationType: this.operationType,
+        relatedEntityId: this.relatedEntityId,
+        clientEmail
+      }
+    ).subscribe({
+      next: (res) => {
+        this.sessionId = res.sessionId;
+        this.isSendingCode = false;
+        this.toastService.info('Verifikacioni kod je poslat na vaš email.');
+      },
+      error: () => {
+        this.isSendingCode = false;
+        this.toastService.error('Greška pri slanju verifikacionog koda.');
+      }
+    });
   }
 
-  onConfirm() {
-    if (!this.verificationCode || this.verificationCode.length < 4) return;
+  onConfirm(): void {
+    if (!this.verificationCode || this.verificationCode.length < 6 || this.sessionId === null) return;
 
-    this.http.post(`${environment.apiUrl}/clients/auth/verify-code`,
-      { code: this.verificationCode },
+    this.http.post(
+      `${environment.apiUrl}/verification/validate`,
+      { sessionId: this.sessionId, code: this.verificationCode },
       { responseType: 'text' }
     ).subscribe({
       next: () => {
-        this.confirmed.emit(true);
+        this.confirmed.emit(this.sessionId!);
       },
       error: () => {
-        // Fallback: accept mock code "1234" for development
-        if (this.verificationCode === '1234') {
-          this.confirmed.emit(true);
-          return;
-        }
         this.attempts++;
         if (this.attempts >= this.maxAttempts) {
           this.toastService.error('Transakcija je otkazana zbog previše neuspešnih pokušaja.');
@@ -87,7 +91,7 @@ export class VerificationModalComponent implements OnInit {
     });
   }
 
-  onClose() {
+  onClose(): void {
     this.closed.emit();
   }
 }

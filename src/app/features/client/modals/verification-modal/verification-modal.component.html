@@ -8,7 +8,6 @@
     <div class="z-modal-body space-y-4">
       <p class="text-sm text-muted-foreground">
         Verifikacioni kod je poslat na vaš email.
-        <span class="text-xs text-muted-foreground/70 block mt-1">(Za testiranje koristite kod: 1234)</span>
       </p>
 
       <div *ngIf="isSendingCode" class="flex justify-center py-4">
@@ -20,8 +19,8 @@
       <div *ngIf="!isSendingCode">
         <label for="code" class="z-label">Unesite kod</label>
         <input type="text" id="code" class="z-input text-center tracking-[0.5em] text-lg font-semibold"
-               [(ngModel)]="verificationCode" placeholder="0000" maxlength="4"
-               (keyup.enter)="verificationCode.length === 4 && onConfirm()" />
+               [(ngModel)]="verificationCode" placeholder="000000" maxlength="6"
+               (keyup.enter)="verificationCode.length === 6 && onConfirm()" />
       </div>
 
       <div *ngIf="attempts > 0">
@@ -35,7 +34,7 @@
 
     <div class="z-modal-footer">
       <button type="button" class="z-btn-outline" (click)="onClose()">Odustani</button>
-      <button type="button" class="z-btn-primary" (click)="onConfirm()" [disabled]="verificationCode.length < 4 || isSendingCode">Potvrdi</button>
+      <button type="button" class="z-btn-primary" (click)="onConfirm()" [disabled]="verificationCode.length < 6 || isSendingCode || sessionId === null">Potvrdi</button>
     </div>
   </div>
 </div>
