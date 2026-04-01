@@ -94,14 +94,12 @@ export class NewPaymentComponent implements OnInit {
     }
   }
 
-  public handleVerification(success: boolean): void {
-      this.showVerificationModal = false;
-      if (success) {
-        this.executeTransaction();
-      }
-    }
+  public handleVerification(sessionId: number): void {
+    this.showVerificationModal = false;
+    this.executeTransaction(sessionId);
+  }
 
-  private executeTransaction(): void {
+  private executeTransaction(verificationSessionId: number): void {
     const form = this.paymentForm.value;
 
     const dto: NewPaymentDto = {
@@ -112,8 +110,7 @@ export class NewPaymentComponent implements OnInit {
       paymentCode: form.paymentCode,
       referenceNumber: form.referenceNumber || undefined,
       paymentPurpose: form.purpose,
-      // TODO: integrisati verification-service (POST /generate) da se dobije pravi verificationSessionId
-      verificationSessionId: 0
+      verificationSessionId
     };
 
     this.clientService.createPayment(dto).subscribe({

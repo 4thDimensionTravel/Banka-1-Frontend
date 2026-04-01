@@ -4,6 +4,15 @@
   <div class="page-content">
     <h1 class="text-2xl font-bold text-foreground mb-6">PREGLED PLAĆANJA</h1>
 
+    <div class="mb-4" *ngIf="accounts.length > 1">
+      <label class="z-label">Račun</label>
+      <select class="z-input" [(ngModel)]="selectedAccountNumber" (change)="onAccountChange()">
+        <option *ngFor="let acc of accounts" [value]="acc.accountNumber">
+          {{ acc.name }} — {{ acc.accountNumber }} ({{ acc.currency }})
+        </option>
+      </select>
+    </div>
+
     <div class="z-card">
       <!-- Tabs -->
       <div class="flex border-b border-border">

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { tap, catchError, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 type LoginResponse = {
@@ -208,12 +208,12 @@ export class AuthService {
    * @param confirmationToken Token from activation email link
    */
   public checkClientActivateToken(confirmationToken: string): Observable<number> {
-    return this.http.get<number>(
-      `${environment.apiUrl}/clients/auth/checkActivate`,
+    return this.http.get<{ id: number }>(
+      `${environment.apiUrl}/clients/auth/check-activate`,
       {
-        params: { confirmationToken },
+        params: { token: confirmationToken },
       },
-    );
+    ).pipe(map(res => res.id));
   }
 
   /**

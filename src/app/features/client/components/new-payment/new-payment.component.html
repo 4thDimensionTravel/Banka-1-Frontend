@@ -119,6 +119,8 @@
 
 <app-verification-modal
   *ngIf="showVerificationModal"
+  operationType="PAYMENT"
+  [relatedEntityId]="paymentForm.value.senderAccount"
   (confirmed)="handleVerification($event)"
   (closed)="showVerificationModal = false">
 </app-verification-modal>

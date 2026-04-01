@@ -124,9 +124,9 @@ export class TransactionDetailModalComponent {
 
     // Finansijski podaci
     addSectionTitle('Finansijski podaci');
-    addField('Početni iznos', `${this.formatAmount(payment.initialAmount)} ${payment.currency}`);
-    addField('Provizija', `${this.formatAmount(payment.fee)} ${payment.currency}`);
-    addField('Krajnji iznos', `${this.formatAmount(payment.finalAmount)} ${payment.currency}`);
+    addField('Početni iznos', `${this.formatAmount(payment.initialAmount)} ${payment.fromCurrency ?? payment.currency}`);
+    addField('Provizija', `${this.formatAmount(payment.fee)} ${payment.finalCurrency ?? payment.currency}`);
+    addField('Krajnji iznos', `${this.formatAmount(payment.finalAmount)} ${payment.finalCurrency ?? payment.currency}`);
 
     y += 4;
 

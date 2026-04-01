@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { Account, ChangeLimitDto } from '../models/account.model';
-import { Transaction, TransactionPage } from '../models/transaction.model';
+import { Transaction } from '../models/transaction.model';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
@@ -58,48 +58,69 @@ export class AccountService {
 
   private mapToAccountFromClient(item: any): Account {
     const subtype = this.mapToSubtypeFromClient(
+      item.subtype,
       item.accountType,
       item.accountCategory,
     );
 
-    // Try to get currency from multiple possible field names
-    const currency = item.currency || item.valuta || item.tek || 'RSD';
+    const currency = item.currency || item.valuta || 'RSD';
 
     return {
-      id: this.hashAccountNumber(item.brojRacuna), // Generate unique ID from account number
+      id: this.hashAccountNumber(item.brojRacuna),
       name: item.nazivRacuna || '',
-      accountNumber: item.brojRacuna || '',
-      balance: 0,
+      accountNumber: (item.brojRacuna || item.accountNumber || '').trim(),
+      balance: item.stanjeRacuna || 0,
       availableBalance: item.raspolozivoStanje || 0,
-      reservedFunds: 0,
+      reservedFunds: item.rezervisanaSredstva || 0,
       currency: currency,
-      status: 'ACTIVE', // Assume all returned accounts are active
+      status: item.status || 'ACTIVE',
       subtype: subtype,
-      ownerId: 0,
+      ownerId: item.vlasnik || 0,
       ownerName: '',
       employeeId: 0,
       maintenanceFee: 0,
-      dailyLimit: 0,
-      monthlyLimit: 0,
-      dailySpending: 0,
-      monthlySpending: 0,
-      createdAt: new Date().toISOString(),
-      expiryDate: '',
+      dailyLimit: item.dailyLimit || 0,
+      monthlyLimit: item.monthlyLimit || 0,
+      dailySpending: item.dailySpending || 0,
+      monthlySpending: item.monthlySpending || 0,
+      createdAt: item.creationDate || new Date().toISOString(),
+      expiryDate: item.expirationDate || '',
     } as Account;
   }
 
   private mapToSubtypeFromClient(
+    subtype: string,
     accountType: string,
     accountCategory: string,
   ): any {
-    if (accountType === 'BUSINESS') {
-      return accountCategory === 'CHECKING' ? 'DOO' : 'AD';
+    const subtypeMap: Record<string, string> = {
+      STANDARDNI: 'STANDARD',
+      STEDNI: 'SAVINGS',
+      PENZIONERSKI: 'PENSION',
+      ZA_MLADE: 'YOUTH',
+      ZA_STUDENTE: 'STUDENT',
+      ZA_NEZAPOSLENE: 'UNEMPLOYED',
+      DOO: 'DOO',
+      AD: 'AD',
+      FONDACIJA: 'FOUNDATION',
+    };
+
+    if (subtype && subtypeMap[subtype]) {
+      return subtypeMap[subtype];
     }
-    return accountCategory === 'CHECKING' ? 'STANDARD' : 'SAVINGS';
+
+    // Fallback for FX accounts which don't have a subtype
+    if (accountCategory === 'FX') {
+      return accountType === 'BUSINESS' ? 'FOREIGN_BUSINESS' : 'FOREIGN_PERSONAL';
+    }
+
+    return 'STANDARD';
   }
 
-  getAccountById(id: number): Observable<Account> {
-    return this.http.get<Account>(`${this.baseUrl}/${id}`);
+  getAccountByNumber(accountNumber: string): Observable<Account> {
+    return this.http.get<any>(
+      `${environment.apiUrl}/accounts/client/api/accounts/${accountNumber}`
+    ).pipe(map(item => this.mapToAccountFromClient(item)));
   }
 
   getTransactions(
@@ -108,13 +129,24 @@ export class AccountService {
     size = 5,
   ): Observable<Transaction[]> {
     return this.http
-      .get<TransactionPage>(
-        `${environment.apiUrl}/transactions/employee/accounts/${accountNumber}`,
+      .get<any>(
+        `${environment.apiUrl}/transactions/accounts/${accountNumber}`,
         {
           params: { page: page.toString(), size: size.toString() },
         },
       )
-      .pipe(map((res) => res.content));
+      .pipe(map((res) => (res.content ?? []).map((item: any): Transaction => ({
+        id: 0,
+        fromAccountId: 0,
+        toAccountNumber: item.toAccountNumber ?? '',
+        recipientName: item.recipientName ?? '',
+        amount: item.finalAmount ?? item.amount ?? 0,
+        currency: item.fromCurrency ?? item.currency ?? 'RSD',
+        status: item.status ?? 'COMPLETED',
+        description: item.paymentPurpose ?? item.description ?? '',
+        createdAt: item.createdAt ?? '',
+        type: item.type ?? 'PAYMENT',
+      }))));
   }
 
   renameAccount(accountNumber: string, name: string): Observable<void> {
@@ -129,17 +161,12 @@ export class AccountService {
     accountNumber: string,
     dailyLimit: number,
     monthlyLimit: number,
-    verificationCode: string,
-    verificationSessionId: string,
+    verificationSessionId: number,
   ): Observable<void> {
     return this.http.put<void>(
       `${this.api}/client/api/accounts/${accountNumber}/limits`,
-      {
-        dailyLimit: dailyLimit,
-        monthlyLimit: monthlyLimit,
-        verificationCode: verificationCode,
-        verificationSessionId: +verificationSessionId,
-      } as ChangeLimitDto,
+      { dailyLimit, monthlyLimit, verificationSessionId } as ChangeLimitDto,
+      { responseType: 'text' as 'json' },
     );
   }
 

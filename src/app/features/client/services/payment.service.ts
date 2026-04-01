@@ -49,11 +49,13 @@ export class PaymentService {
    * Dohvata listu plaćanja sa filterima i paginacijom.
    */
   public getPayments(
+    accountNumber: string,
     filters: PaymentFilters = {},
     page = 0,
     size = 10
-  ): Observable<PaymentPage> {    
+  ): Observable<PaymentPage> {
     let params = new HttpParams()
+      .set('accountNumber', accountNumber)
       .set('page', page.toString())
       .set('size', size.toString());
     

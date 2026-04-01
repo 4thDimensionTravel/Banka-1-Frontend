@@ -25,8 +25,14 @@ export interface Payment {
   /** Na račun */
   recipientAccountNumber: string;
 
-  /** Valuta */
+  /** Valuta za prikaz u listi (valuta selektovanog računa) */
   currency: string;
+
+  /** Valuta pošiljaoca — za prikaz početnog iznosa u detaljima */
+  fromCurrency?: string;
+
+  /** Valuta primaoca — za prikaz krajnjeg iznosa i provizije u detaljima */
+  finalCurrency?: string;
 
   /** Iznos za prikaz u listi */
   amount: number;

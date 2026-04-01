@@ -7,6 +7,9 @@ import { takeUntil, debounceTime } from 'rxjs/operators';
 
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
 import { PaymentService } from '../../services/payment.service';
+import { AccountService } from '../../services/account.service';
+import { TransferService } from '../../services/transfer.service';
+import { Account } from '../../models/account.model';
 import { Payment, PaymentFilters, PaymentStatus } from '../../models/payment.model';
 import { TransactionDetailModalComponent } from '../../modals/transaction-detail-modal/transaction-detail-modal.component';
 
@@ -20,6 +23,8 @@ import { TransactionDetailModalComponent } from '../../modals/transaction-detail
 export class PaymentHistoryComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
+  accounts: Account[] = [];
+  selectedAccountNumber = '';
   payments: Payment[] = [];
   isLoading = false;
   errorMessage = '';
@@ -60,10 +65,30 @@ export class PaymentHistoryComponent implements OnInit, OnDestroy {
     { value: 'REJECTED', label: 'Odbijeno' }
   ];
 
-  constructor(private readonly paymentService: PaymentService) {}
+  constructor(
+    private readonly paymentService: PaymentService,
+    private readonly accountService: AccountService,
+    private readonly transferService: TransferService
+  ) {}
 
   public ngOnInit(): void {
     this.syncDraftFilters();
+    this.accountService.getMyAccounts().subscribe({
+      next: (accounts) => {
+        this.accounts = accounts.filter(a => a.status === 'ACTIVE');
+        if (this.accounts.length > 0) {
+          this.selectedAccountNumber = this.accounts[0].accountNumber;
+          this.loadPayments();
+        }
+      },
+      error: () => {
+        this.errorMessage = 'Greška pri učitavanju računa.';
+      }
+    });
+  }
+
+  public onAccountChange(): void {
+    this.currentPage = 0;
     this.loadPayments();
   }
 
@@ -73,25 +98,28 @@ export class PaymentHistoryComponent implements OnInit, OnDestroy {
   }
 
   public loadPayments(): void {
+    if (!this.selectedAccountNumber) return;
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.paymentService
-      .getPayments(this.filters, this.currentPage, this.pageSize)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (page) => {
-          this.payments = page.content;
-          this.totalElements = page.totalElements;
-          this.totalPages = page.totalPages;
-          this.isLoading = false;
-        },
-        error: (error) => {
-          console.error('Greška pri učitavanju plaćanja:', error);
-          this.errorMessage = 'Došlo je do greške pri učitavanju plaćanja.';
-          this.isLoading = false;
-        }
-      });
+    const currencyMap = new Map(this.accounts.map(a => [a.accountNumber, a.currency]));
+    const request$ = this.activeTab === 'transfers'
+      ? this.transferService.getTransferHistory(this.selectedAccountNumber, currencyMap, this.currentPage, this.pageSize)
+      : this.paymentService.getPayments(this.selectedAccountNumber, this.filters, this.currentPage, this.pageSize);
+
+    request$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (page) => {
+        this.payments = page.content;
+        this.totalElements = page.totalElements;
+        this.totalPages = page.totalPages;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Greška pri učitavanju:', error);
+        this.errorMessage = 'Došlo je do greške pri učitavanju.';
+        this.isLoading = false;
+      }
+    });
   }
 
   public toggleFilterPanel(): void {

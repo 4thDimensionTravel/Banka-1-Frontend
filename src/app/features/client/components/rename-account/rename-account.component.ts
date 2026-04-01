@@ -2,6 +2,7 @@ import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ReactiveFormsModule } from '@angular/forms';
 import { Account } from '../../models/account.model';
 import { AccountService } from '../../services/account.service';
+import { ToastService } from '../../../../shared/services/toast.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -20,7 +21,7 @@ export class RenameAccountComponent implements OnInit {
   renameForm: FormGroup;
   errorMessage = '';
 
-  constructor(private fb: FormBuilder, private accountService: AccountService) {
+  constructor(private fb: FormBuilder, private accountService: AccountService, private toastService: ToastService) {
     this.renameForm = this.fb.group({
       newName: ['', [Validators.required]]
     });
@@ -74,10 +75,12 @@ export class RenameAccountComponent implements OnInit {
       this.errorMessage = '';
       this.accountService.renameAccount(this.account.accountNumber, newName).subscribe({
         next: () => {
+          this.toastService.success('Naziv računa je uspešno promenjen.');
           this.updated.emit(newName);
           this.onCancel();
         },
         error: () => {
+          this.toastService.error('Greška pri promeni naziva. Pokušajte ponovo.');
           this.errorMessage = 'Greška pri promeni naziva. Pokušajte ponovo.';
         }
       });

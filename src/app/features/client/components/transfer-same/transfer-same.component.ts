@@ -48,8 +48,8 @@ export class TransferSameComponent implements OnInit {
 
   ngOnInit(): void {
     this.transferForm = this.fb.group({
-      fromAccountId: [null, Validators.required],
-      toAccountId: [null, Validators.required],
+      fromAccountNumber: [null, Validators.required],
+      toAccountNumber: [null, Validators.required],
       amount: [null, [Validators.required, Validators.min(0.01)]]
     });
 
@@ -66,16 +66,16 @@ export class TransferSameComponent implements OnInit {
   }
 
   onFromAccountChange(): void {
-    const fromId = this.transferForm.get('fromAccountId')?.value;
-    this.selectedFromAccount = this.accounts.find(a => a.id === +fromId) || null;
+    const fromNumber = this.transferForm.get('fromAccountNumber')?.value;
+    this.selectedFromAccount = this.accounts.find(a => a.accountNumber === fromNumber) || null;
 
-    this.transferForm.patchValue({ toAccountId: null });
+    this.transferForm.patchValue({ toAccountNumber: null });
     this.selectedToAccount = null;
     this.noMatchMessage = '';
 
     if (this.selectedFromAccount) {
       this.filteredToAccounts = this.accounts.filter(
-        a => a.id !== this.selectedFromAccount!.id && a.currency === this.selectedFromAccount!.currency
+        a => a.accountNumber !== this.selectedFromAccount!.accountNumber && a.currency === this.selectedFromAccount!.currency
       );
 
       if (this.filteredToAccounts.length === 0) {
@@ -87,8 +87,8 @@ export class TransferSameComponent implements OnInit {
   }
 
   onToAccountChange(): void {
-    const toId = this.transferForm.get('toAccountId')?.value;
-    this.selectedToAccount = this.accounts.find(a => a.id === +toId) || null;
+    const toNumber = this.transferForm.get('toAccountNumber')?.value;
+    this.selectedToAccount = this.accounts.find(a => a.accountNumber === toNumber) || null;
   }
 
   get amountError(): string {
@@ -101,7 +101,6 @@ export class TransferSameComponent implements OnInit {
   }
 
   onContinue(): void {
-    // Validate amount against available balance
     const amount = this.transferForm.get('amount')?.value;
     if (this.selectedFromAccount && amount > this.selectedFromAccount.availableBalance) {
       this.transferForm.get('amount')?.setErrors({ exceedsBalance: true });
@@ -125,23 +124,22 @@ export class TransferSameComponent implements OnInit {
     this.showVerificationModal = true;
   }
 
-  handleVerification(success: boolean): void {
+  handleVerification(sessionId: number): void {
     this.showVerificationModal = false;
-    if (success) {
-      this.executeTransfer();
-    }
+    this.executeTransfer(sessionId);
   }
 
-  private executeTransfer(): void {
+  private executeTransfer(verificationSessionId: number): void {
     this.isSubmitting = true;
 
     const payload = {
-      fromAccountId: +this.transferForm.value.fromAccountId,
-      toAccountId: +this.transferForm.value.toAccountId,
-      amount: this.transferForm.value.amount
+      fromAccountNumber: this.transferForm.value.fromAccountNumber,
+      toAccountNumber: this.transferForm.value.toAccountNumber,
+      amount: this.transferForm.value.amount,
+      verificationSessionId
     };
 
-    this.transferService.transferSameCurrency(payload).subscribe({
+    this.transferService.transfer(payload).subscribe({
       next: () => {
         this.isSubmitting = false;
         this.step = 'success';
