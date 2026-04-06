@@ -16,35 +16,38 @@ import { ForbiddenComponent } from './shared/components/forbidden/forbidden.comp
 import { NewPaymentComponent } from './features/client/components/new-payment/new-payment.component';
 import { AccountManagementComponent } from './features/employee/account-management/account-management.component';
 import { AccountCardsPlaceholderComponent } from './features/employee/account-cards-placeholder/account-cards-placeholder.component';
+import { ActuaryManagementComponent } from './features/employee/components/actuary-management/actuary-management.component';
 import { PaymentRecipientsComponent } from './features/client/components/payment-recipients/payment-recipients.component';
 import { PaymentHistoryComponent } from './features/client/components/payment-history/payment-history.component';
 import { SecuritiesListComponent } from './features/securities/components/securities-list/securities-list.component';
 import { SecurityDetailComponent } from './features/securities/components/security-detail/security-detail.component';
 import { StockDetailComponent } from './features/securities/components/stock-detail/stock-detail.component';
+import { LoanListComponent } from './features/client/components/loan-list/loan-list.component';
+import { LoanDetailsComponent } from './features/client/components/loan-details/loan-details.component';
 
 const routes: Routes = [
   {
     path: 'home',
     loadChildren: () =>
       import('./features/client/client.module').then((m) => m.ClientModule),
-    canActivate: [authGuard]
+     canActivate: [authGuard]
   },
   {
     path: 'employees/new',
     component: EmployeeCreateComponent,
-    canActivate: [authGuard, roleGuard],
+     canActivate: [authGuard, roleGuard],
     data: { permission: 'EMPLOYEE_MANAGE_ALL' }
   },
   {
     path: 'accounts/new',
     component: AccountCreateComponent,
-    canActivate: [authGuard, roleGuard],
+     canActivate: [authGuard, roleGuard],
     data: { permission: 'CLIENT_MANAGE' }
   },
   {
     path: 'clients',
     component: ClientListComponent,
-    canActivate: [authGuard, roleGuard],
+     canActivate: [authGuard, roleGuard],
     data: { permission: 'CLIENT_MANAGE' }
   },
   {
@@ -71,7 +74,7 @@ const routes: Routes = [
   {
     path: 'accounts',
     component: AccountListComponent,
-    canActivate: [authGuard],
+     canActivate: [authGuard],
   },
   {
   path: 'account-management',
@@ -82,8 +85,14 @@ const routes: Routes = [
 {
   path: 'account-cards',
   component: AccountCardsPlaceholderComponent,
-  canActivate: [authGuard, roleGuard],
+   canActivate: [authGuard, roleGuard],
   data: { permission: 'CLIENT_MANAGE' }
+},
+{
+  path: 'actuary-management',
+  component: ActuaryManagementComponent,
+  canActivate: [authGuard, roleGuard],
+  data: { permission: 'FUND_AGENT_MANAGE' }
 },
 
   {
@@ -115,6 +124,16 @@ const routes: Routes = [
   {
     path: 'payments',
     component: PaymentHistoryComponent,
+     canActivate: [authGuard]
+  },
+  {
+    path: 'loans',
+    component: LoanListComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'loans/:id',
+    component: LoanDetailsComponent,
     canActivate: [authGuard]
   },
   {

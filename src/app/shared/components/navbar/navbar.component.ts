@@ -30,6 +30,7 @@ export class NavbarComponent implements OnInit {
     { label: 'Menjačnica', route: '/exchange',            icon: 'currency_exchange' },
     { label: 'Primaoci plaćanja', route: '/payments/recipients', icon: 'people' },
     { label: 'Hartije',    route: '/securities',          icon: 'trending_up' },
+    { label: 'Krediti',    route: '/loans',               icon: 'credit_card' },
   ];
 
   private readonly employeeLinks: NavLink[] = [
@@ -38,6 +39,10 @@ export class NavbarComponent implements OnInit {
     { label: 'Kreiraj račun', route: '/accounts/new',     icon: 'add_card' },
     { label: 'Upravljanje računima', route: '/account-management', icon: 'account_balance' },
     { label: 'Hartije',    route: '/securities',          icon: 'trending_up' },
+  ];
+
+  private readonly supervisorLinks: NavLink[] = [
+    { label: 'Upravljanje aktuarima', route: '/actuary-management', icon: 'supervisor_account' },
   ];
 
   constructor(private authService: AuthService) {}
@@ -50,7 +55,11 @@ export class NavbarComponent implements OnInit {
     if (this.isClient()) {
       this.navLinks = this.clientLinks;
     } else {
-      this.navLinks = this.employeeLinks;
+      const permissions: string[] = (user as any)?.permissions ?? [];
+      this.navLinks = [
+        ...this.employeeLinks,
+        ...(permissions.includes('FUND_AGENT_MANAGE') ? this.supervisorLinks : [])
+      ];
     }
   }
 
