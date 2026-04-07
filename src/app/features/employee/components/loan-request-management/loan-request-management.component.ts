@@ -1,4 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subject, EMPTY } from 'rxjs';
+import { takeUntil, switchMap, catchError } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/services/toast.service';
 import { LoanService } from '../../../client/services/loan.service';
 
@@ -46,6 +48,8 @@ export class LoanRequestManagementComponent implements OnInit, OnDestroy {
   ];
 
   private searchTimeout: ReturnType<typeof setTimeout> | null = null;
+  private readonly destroy$ = new Subject<void>();
+  private readonly reload$ = new Subject<void>();
 
   constructor(
     private readonly loanService: LoanService,
@@ -53,41 +57,45 @@ export class LoanRequestManagementComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.loadLoanRequests();
+    this.reload$.pipe(
+      switchMap(() => {
+        this.isLoading = true;
+        return this.loanService.getLoanRequests(
+          {
+            loanType: this.filterLoanType,
+            accountNumber: this.filterAccountNumber,
+          },
+          this.currentPage,
+          this.pageSize
+        ).pipe(
+          catchError((err) => {
+            this.isLoading = false;
+            this.toastService.error(err?.error?.message || 'Greška pri učitavanju zahteva za kredite.');
+            return EMPTY;
+          })
+        );
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe((data) => {
+      this.loanRequests = data.content ?? [];
+      this.totalElements = data.totalElements ?? 0;
+      this.totalPages = data.totalPages ?? 0;
+      this.isLoading = false;
+    });
+
+    this.reload$.next();
   }
 
   ngOnDestroy(): void {
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout);
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadLoanRequests(): void {
-    this.isLoading = true;
-
-    this.loanService
-      .getLoanRequests(
-        {
-          loanType: this.filterLoanType,
-          accountNumber: this.filterAccountNumber,
-        },
-        this.currentPage,
-        this.pageSize
-      )
-      .subscribe({
-        next: (data) => {
-          this.loanRequests = data.content ?? [];
-          this.totalElements = data.totalElements ?? 0;
-          this.totalPages = data.totalPages ?? 0;
-          this.isLoading = false;
-        },
-        error: (err) => {
-          this.isLoading = false;
-          this.toastService.error(
-            err?.error?.message || 'Greška pri učitavanju zahteva za kredite.'
-          );
-        }
-      });
+    this.reload$.next();
   }
 
   onFilterChange(): void {
@@ -154,7 +162,7 @@ export class LoanRequestManagementComponent implements OnInit, OnDestroy {
 
     this.isActioning = true;
 
-    action$.subscribe({
+    action$.pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
         this.toastService.success(
           type === 'approve'

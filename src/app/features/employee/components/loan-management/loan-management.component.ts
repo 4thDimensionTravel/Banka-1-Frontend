@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject, EMPTY } from 'rxjs';
+import { takeUntil, switchMap, catchError } from 'rxjs/operators';
 import { ToastService } from 'src/app/shared/services/toast.service';
 import { LoanService } from '../../../client/services/loan.service';
 import {
@@ -57,6 +58,8 @@ export class LoanManagementComponent implements OnInit, OnDestroy {
   ];
 
   private searchTimeout: ReturnType<typeof setTimeout> | null = null;
+  private readonly destroy$ = new Subject<void>();
+  private readonly reload$ = new Subject<void>();
 
   constructor(
     private readonly loanService: LoanService,
@@ -64,40 +67,46 @@ export class LoanManagementComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.loadLoans();
+    this.reload$.pipe(
+      switchMap(() => {
+        this.isLoading = true;
+        return this.loanService.getAllLoans(
+          {
+            loanType: this.filterLoanType,
+            accountNumber: this.filterAccountNumber,
+            status: this.filterStatus,
+          },
+          this.currentPage,
+          this.pageSize
+        ).pipe(
+          catchError((err) => {
+            this.isLoading = false;
+            this.toastService.error(err?.error?.message || 'Greška pri učitavanju kredita.');
+            return EMPTY;
+          })
+        );
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe((data) => {
+      this.loans = data.content ?? [];
+      this.totalElements = data.totalElements ?? 0;
+      this.totalPages = data.totalPages ?? 0;
+      this.isLoading = false;
+    });
+
+    this.reload$.next();
   }
 
   ngOnDestroy(): void {
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout);
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadLoans(): void {
-    this.isLoading = true;
-
-    this.loanService.getAllLoans(
-      {
-        loanType: this.filterLoanType,
-        accountNumber: this.filterAccountNumber,
-        status: this.filterStatus,
-      },
-      this.currentPage,
-      this.pageSize
-    ).subscribe({
-      next: (data) => {
-        this.loans = data.content ?? [];
-        this.totalElements = data.totalElements ?? 0;
-        this.totalPages = data.totalPages ?? 0;
-        this.isLoading = false;
-      },
-      error: (err) => {
-        this.isLoading = false;
-        this.toastService.error(
-          err?.error?.message || 'Greška pri učitavanju kredita.'
-        );
-      }
-    });
+    this.reload$.next();
   }
 
   onFilterChange(): void {
@@ -138,7 +147,7 @@ export class LoanManagementComponent implements OnInit, OnDestroy {
     forkJoin({
       loan: this.loanService.getEmployeeLoanById(loan.id),
       installments: this.loanService.getEmployeeLoanInstallments(loan.id)
-    }).subscribe({
+    }).pipe(takeUntil(this.destroy$)).subscribe({
       next: ({ loan: detail, installments }) => {
         this.selectedLoan = detail;
         this.selectedInstallments = installments ?? [];
