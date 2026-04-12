@@ -20,11 +20,12 @@ import {
 @Injectable({ providedIn: 'root' })
 export class SecuritiesService {
   private readonly baseUrl = `${environment.apiUrl}/order/orders`;
+  private readonly clientOrdersUrl = `${environment.apiUrl}/order/orders/my-orders`;
 
   constructor(private readonly http: HttpClient) {}
 
   /**
-   * Get list of stocks with filters and pagination
+   * Get list of stocks for employees with filters and pagination
    */
   getStocks(
     filters: SecuritiesFilters = {},
@@ -34,8 +35,108 @@ export class SecuritiesService {
   ): Observable<SecuritiesPage<Stock>> {
     let params = new HttpParams()
       .set('status', "ALL")
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sort?.field || 'ticker')
+      .set('sortDirection', sort?.direction || 'asc');
+
+    // Apply search filter if provided
+    if (filters.search) {
+      params = params.set('search', filters.search);
+    }
+
+    // Apply price filters
+    if (filters.priceMin !== undefined) {
+      params = params.set('priceMin', filters.priceMin.toString());
+    }
+    if (filters.priceMax !== undefined) {
+      params = params.set('priceMax', filters.priceMax.toString());
+    }
+
+    // Apply volume filters
+    if (filters.volumeMin !== undefined) {
+      params = params.set('volumeMin', filters.volumeMin.toString());
+    }
+    if (filters.volumeMax !== undefined) {
+      params = params.set('volumeMax', filters.volumeMax.toString());
+    }
+
+    // Apply bid/ask filters
+    if (filters.bidMin !== undefined) {
+      params = params.set('bidMin', filters.bidMin.toString());
+    }
+    if (filters.bidMax !== undefined) {
+      params = params.set('bidMax', filters.bidMax.toString());
+    }
+    if (filters.askMin !== undefined) {
+      params = params.set('askMin', filters.askMin.toString());
+    }
+    if (filters.askMax !== undefined) {
+      params = params.set('askMax', filters.askMax.toString());
+    }
 
     return this.http.get<SecuritiesPage<Stock>>(`${this.baseUrl}`, { params });
+  }
+
+  /**
+   * Get list of stocks for clients (returns List, not paginated)
+   */
+  getClientStocks(
+    filters: SecuritiesFilters = {},
+    page = 0,
+    size = 10,
+    sort?: SortConfig
+  ): Observable<SecuritiesPage<Stock>> {
+    // Backend returns List<OrderResponse>, not paginated
+    // We map it to SecuritiesPage format for consistent component behavior
+    return this.http.get<Stock[]>(`${this.clientOrdersUrl}`).pipe(
+      map(orders => {
+        // Apply client-side pagination since backend doesn't support it
+        let filtered = orders || [];
+        
+        // Apply sorting if specified
+        if (sort) {
+          filtered = this.sortArray(filtered, sort);
+        }
+        
+        // Apply search filter if provided
+        if (filters.search) {
+          filtered = filtered.filter(order =>
+            (order.ticker?.toLowerCase().includes(filters.search!.toLowerCase())) ||
+            (order.name?.toLowerCase().includes(filters.search!.toLowerCase()))
+          );
+        }
+        
+        // Client-side pagination
+        const startIdx = page * size;
+        const endIdx = startIdx + size;
+        const paginatedContent = filtered.slice(startIdx, endIdx);
+        
+        return {
+          content: paginatedContent,
+          totalElements: filtered.length,
+          totalPages: Math.ceil(filtered.length / size),
+          number: page,
+          size: size,
+        } as SecuritiesPage<Stock>;
+      })
+    );
+  }
+
+  /**
+   * Helper method to sort array of stocks
+   */
+  private sortArray(stocks: Stock[], sort: SortConfig): Stock[] {
+    return [...stocks].sort((a, b) => {
+      const field = sort.field as keyof Stock;
+      const aVal = a[field];
+      const bVal = b[field];
+      
+      if (aVal === undefined || bVal === undefined) return 0;
+      
+      const comparison = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+      return sort.direction === 'asc' ? comparison : -comparison;
+    });
   }
 
 
@@ -53,6 +154,35 @@ export class SecuritiesService {
       .set('size', size.toString())
       .set('sortBy', sort?.field || 'ticker')
       .set('sortDirection', sort?.direction || 'asc');
+
+    // Apply search filter if provided
+    if (filters.search) {
+      params = params.set('search', filters.search);
+    }
+
+    // Apply date filters
+    if (filters.settlementDateFrom) {
+      params = params.set('settlementDateFrom', filters.settlementDateFrom);
+    }
+    if (filters.settlementDateTo) {
+      params = params.set('settlementDateTo', filters.settlementDateTo);
+    }
+
+    // Apply price filters
+    if (filters.priceMin !== undefined) {
+      params = params.set('priceMin', filters.priceMin.toString());
+    }
+    if (filters.priceMax !== undefined) {
+      params = params.set('priceMax', filters.priceMax.toString());
+    }
+
+    // Apply margin filters
+    if (filters.marginMin !== undefined) {
+      params = params.set('marginMin', filters.marginMin.toString());
+    }
+    if (filters.marginMax !== undefined) {
+      params = params.set('marginMax', filters.marginMax.toString());
+    }
 
     return this.http.get<any>(`${environment.apiUrl}/stock/api/listings/futures`, { params }).pipe(
       map(response => ({
@@ -106,6 +236,33 @@ export class SecuritiesService {
       .set('size', size.toString())
       .set('sortBy', sort?.field || 'ticker')
       .set('sortDirection', sort?.direction || 'asc');
+
+    // Apply search filter if provided
+    if (filters.search) {
+      params = params.set('search', filters.search);
+    }
+
+    // Apply price filters
+    if (filters.priceMin !== undefined) {
+      params = params.set('priceMin', filters.priceMin.toString());
+    }
+    if (filters.priceMax !== undefined) {
+      params = params.set('priceMax', filters.priceMax.toString());
+    }
+
+    // Apply bid/ask filters
+    if (filters.bidMin !== undefined) {
+      params = params.set('bidMin', filters.bidMin.toString());
+    }
+    if (filters.bidMax !== undefined) {
+      params = params.set('bidMax', filters.bidMax.toString());
+    }
+    if (filters.askMin !== undefined) {
+      params = params.set('askMin', filters.askMin.toString());
+    }
+    if (filters.askMax !== undefined) {
+      params = params.set('askMax', filters.askMax.toString());
+    }
 
     return this.http.get<any>(`${environment.apiUrl}/stock/api/listings/forex`, { params }).pipe(
       map(response => ({

@@ -85,12 +85,22 @@ export class SecuritiesListComponent implements OnInit, OnDestroy {
     let request$: Observable<SecuritiesPage<Security>>;
     switch (this.activeTab) {
       case 'stocks':
-        request$ = this.securitiesService.getStocks(
-          this.filters,
-          this.currentPage,
-          this.pageSize,
-          this.sortConfig
-        );
+        // Use client-specific endpoint for stock clients
+        if (this.isClient) {
+          request$ = this.securitiesService.getClientStocks(
+            this.filters,
+            this.currentPage,
+            this.pageSize,
+            this.sortConfig
+          );
+        } else {
+          request$ = this.securitiesService.getStocks(
+            this.filters,
+            this.currentPage,
+            this.pageSize,
+            this.sortConfig
+          );
+        }
         break;
       case 'futures':
         request$ = this.securitiesService.getFutures(
