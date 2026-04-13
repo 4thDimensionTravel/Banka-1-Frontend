@@ -181,6 +181,10 @@ export class SecuritiesListComponent implements OnInit, OnDestroy {
       this.toastService.error('Minimalni ask ne može biti veći od maksimalnog.');
       return;
     }
+    if (f.settlementDateFrom && f.settlementDateTo && f.settlementDateFrom > f.settlementDateTo) {
+      this.toastService.error('Datum izmirenja "od" ne može biti posle datuma "do".');
+      return;
+    }
     this.filters = { ...f, search: this.searchQuery };
     this.currentPage = 0;
     this.loadSecurities();

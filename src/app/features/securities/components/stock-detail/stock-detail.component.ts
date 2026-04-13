@@ -163,10 +163,16 @@ export class StockDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   updateDisplayedOptions(): void {
     if (!this.optionChain) return;
 
-    const count = Math.min(this.strikeCount, this.optionChain.strikes.length);
-    const startIndex = Math.floor((this.optionChain.strikes.length - count) / 2);
+    const currentPrice = this.stock?.price ?? 0;
+    const strikes = this.optionChain.strikes; // already sorted ascending
 
-    this.displayedStrikes = this.optionChain.strikes.slice(startIndex, startIndex + count);
+    const below = strikes.filter((s) => s <= currentPrice);
+    const above = strikes.filter((s) => s > currentPrice);
+
+    const selectedBelow = below.slice(-this.strikeCount);
+    const selectedAbove = above.slice(0, this.strikeCount);
+
+    this.displayedStrikes = [...selectedBelow, ...selectedAbove];
 
     this.displayedCalls = this.optionChain.calls.filter((c) =>
       this.displayedStrikes.includes(c.strike)
