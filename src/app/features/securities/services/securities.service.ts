@@ -299,8 +299,8 @@ export class SecuritiesService {
     );
   }
 
-  getStockById(id: number): Observable<Stock> {
-    const params = new HttpParams().set('period', 'DAY');
+  getStockById(id: number, period: string = 'DAY'): Observable<Stock> {
+    const params = new HttpParams().set('period', period.toUpperCase());
     return this.http.get<any>(`${environment.apiUrl}/stock/api/listings/${id}`, { params }).pipe(
       map((item: any) => ({
         id: item.listingId,
@@ -322,8 +322,18 @@ export class SecuritiesService {
         previousClose: item.price ?? 0,
         bid: item.bid ?? 0,
         ask: item.ask ?? 0,
-        dividend: item.stockDetails?.dividendYield ?? undefined,
         dividendYield: item.stockDetails?.dividendYield ?? undefined,
+        dollarVolume: item.dollarVolume ?? undefined,
+        outstandingShares: item.stockDetails?.outstandingShares ?? undefined,
+        contractSize: item.stockDetails?.contractSize ?? undefined,
+        priceHistory: (item.priceHistory ?? []).map((p: any) => ({
+          date: p.date,
+          price: p.price,
+          volume: p.volume,
+          change: p.change,
+          changePercent: p.changePercent,
+          dollarVolume: p.dollarVolume,
+        })),
       } as Stock))
     );
   }
@@ -458,9 +468,8 @@ export class SecuritiesService {
         // Extract optionGroups and find matching settlement date
         const optionGroups = response.optionGroups || [];
         const matching = optionGroups.find((og: any) => og.settlementDate === settlementDate);
-        
+
         if (!matching) {
-          // Return empty option chain if settlement date not found
           return {
             settlementDate,
             daysToExpiry: 0,
@@ -470,18 +479,36 @@ export class SecuritiesService {
           } as OptionChain;
         }
 
-        // Calculate days to expiry
         const expiry = new Date(settlementDate);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const daysToExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
+        const mapOption = (opt: any, type: 'CALL' | 'PUT'): StockOption => ({
+          strike: opt.strikePrice ?? opt.strike ?? 0,
+          type,
+          last: opt.last ?? 0,
+          theta: opt.theta ?? 0,
+          bid: opt.bid ?? 0,
+          ask: opt.ask ?? 0,
+          volume: opt.volume ?? 0,
+          openInterest: opt.openInterest ?? 0,
+          inTheMoney: opt.inTheMoney ?? false,
+        });
+
+        const calls = (matching.calls ?? []).map((opt: any) => mapOption(opt, 'CALL'));
+        const puts = (matching.puts ?? []).map((opt: any) => mapOption(opt, 'PUT'));
+        const allStrikes = [...new Set([
+          ...calls.map((c: StockOption) => c.strike),
+          ...puts.map((p: StockOption) => p.strike),
+        ])].sort((a: any, b: any) => a - b);
+
         return {
           settlementDate: matching.settlementDate,
           daysToExpiry,
-          calls: matching.options?.filter((opt: any) => opt.type === 'CALL') || [],
-          puts: matching.options?.filter((opt: any) => opt.type === 'PUT') || [],
-          strikes: [...new Set((matching.options || []).map((opt: any) => opt.strike))].sort((a: any, b: any) => a - b)
+          calls,
+          puts,
+          strikes: allStrikes,
         } as OptionChain;
       })
     );

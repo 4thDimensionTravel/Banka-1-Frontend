@@ -85,37 +85,31 @@ export class StockDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   loadStock(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    this.loadPriceHistory(true);
+  }
 
+  loadPriceHistory(initialLoad = false): void {
     this.securitiesService
-      .getStockById(+this.ticker)
+      .getStockById(+this.ticker, this.selectedPeriod)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (stock) => {
-          this.stock = stock;
+          this.stock = this.applyPeriodStats(stock);
           this.buildDetailRows();
-          this.loadPriceHistory();
-          this.loadSettlementDates();
+          this.priceHistory = {
+            ticker: stock.ticker,
+            period: this.selectedPeriod,
+            data: stock.priceHistory ?? [],
+          };
+          this.isLoading = false;
+          setTimeout(() => this.drawChart(), 0);
+          if (initialLoad) {
+            this.loadSettlementDates();
+          }
         },
         error: (err) => {
           console.error('Error loading stock:', err);
           this.errorMessage = 'Greška pri učitavanju akcije.';
-          this.isLoading = false;
-        },
-      });
-  }
-
-  loadPriceHistory(): void {
-    this.securitiesService
-      .getPriceHistory(this.ticker, this.selectedPeriod)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (history) => {
-          this.priceHistory = history;
-          this.isLoading = false;
-          setTimeout(() => this.drawChart(), 0);
-        },
-        error: (err) => {
-          console.error('Error loading price history:', err);
           this.isLoading = false;
         },
       });
@@ -182,36 +176,51 @@ export class StockDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     );
   }
 
+  applyPeriodStats(stock: Stock): Stock {
+    const history = stock.priceHistory;
+    if (!history || history.length <= 1) return stock;
+
+    const first = history[0];
+    const last = history[history.length - 1];
+    const periodChange = last.price - first.price;
+    const periodChangePercent = first.price !== 0 ? (periodChange / first.price) * 100 : 0;
+    const totalVolume = history.reduce((sum, p) => sum + (p.volume ?? 0), 0);
+    const totalDollarVolume = history.reduce((sum, p) => sum + (p.dollarVolume ?? 0), 0);
+
+    return {
+      ...stock,
+      change: periodChange,
+      changePercent: periodChangePercent,
+      volume: totalVolume,
+      dollarVolume: totalDollarVolume || stock.dollarVolume,
+    };
+  }
+
   selectPeriod(period: Period): void {
     this.selectedPeriod = period;
+    this.isLoading = true;
     this.loadPriceHistory();
   }
 
   buildDetailRows(): void {
     if (!this.stock) return;
+    const s = this.stock;
+    const nan = 'NaN';
 
     this.detailRows = [
-      { label: 'Otvaranje', value: this.formatPrice(this.stock.open) },
-      { label: 'Najviša', value: this.formatPrice(this.stock.high) },
-      { label: 'Najniža', value: this.formatPrice(this.stock.low) },
-      { label: 'Prethodno zatvaranje', value: this.formatPrice(this.stock.previousClose) },
+      { label: 'Bid',                   value: this.formatPrice(s.bid) },
+      { label: 'Ask',                   value: this.formatPrice(s.ask) },
+      { label: 'Otvaranje',             value: nan },
+      { label: 'Najviša',               value: nan },
+      { label: 'Najniža',               value: nan },
+      { label: 'Prethodno zatvaranje',  value: nan },
+      { label: 'Tržišna kapitalizacija',value: nan },
+      { label: 'P/E odnos',             value: nan },
+      { label: 'Dividendni prinos',     value: s.dividendYield !== undefined ? (s.dividendYield * 100).toFixed(2) + '%' : nan },
+      { label: 'Dollar volumen',        value: s.dollarVolume !== undefined ? this.formatLargeNumber(s.dollarVolume) : nan },
+      { label: 'Akcije u opticaju',     value: s.outstandingShares !== undefined ? this.formatLargeNumber(s.outstandingShares) : nan },
+      { label: 'Veličina ugovora',      value: s.contractSize !== undefined ? s.contractSize.toString() : nan },
     ];
-
-    if (this.stock.marketCap) {
-      this.detailRows.push({
-        label: 'Tržišna kapitalizacija',
-        value: this.formatLargeNumber(this.stock.marketCap),
-      });
-    }
-    if (this.stock.pe) {
-      this.detailRows.push({ label: 'P/E odnos', value: this.stock.pe.toFixed(2) });
-    }
-    if (this.stock.dividend) {
-      this.detailRows.push({
-        label: 'Dividenda',
-        value: `${this.formatPrice(this.stock.dividend)} (${this.stock.dividendYield?.toFixed(2)}%)`,
-      });
-    }
   }
 
   drawChart(): void {
