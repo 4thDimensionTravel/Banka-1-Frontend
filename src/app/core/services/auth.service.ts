@@ -99,6 +99,11 @@ export class AuthService {
     return (user as any)?.role ?? '';
   }
 
+  /**
+   * Dekodira JWT role iz tokena.
+   * UPOZORENJE: Ovo se koristi samo za UI prikaz i frontend UX odluke.
+   * Backend mora da validira potpis tokena i role za sve autorizacione odluke.
+   */
   getJwtRoles(): string[] {
     const token = this.getToken();
 

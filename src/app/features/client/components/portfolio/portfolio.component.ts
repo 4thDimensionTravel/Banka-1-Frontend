@@ -69,9 +69,10 @@ export class PortfolioComponent implements OnInit, OnDestroy {
 
           this.isLoading = false;
         },
-        error: () => {
+        error: (error) => {
+          console.error('Error loading portfolio:', error);
           this.errorMessage =
-            'Greška pri učitavanju portfolija. Pokušajte ponovo.';
+            'Gre�ka pri ucitavanju portfolija. Poku�ajte ponovo.';
           this.isLoading = false;
         },
       });
@@ -82,65 +83,72 @@ export class PortfolioComponent implements OnInit, OnDestroy {
   }
 
   hasPortfolioActionId(holding: PortfolioHolding): boolean {
-    return holding.id !== undefined && holding.id !== null;
+    return typeof holding.id === 'number';
   }
 
   savePublicQuantity(holding: PortfolioHolding, index: number): void {
     const key = this.getHoldingKey(holding, index);
     const value = Number(this.draftPublicQuantities[key] ?? 0);
+    const holdingId = holding.id;
 
-    if (!this.hasPortfolioActionId(holding)) {
-      this.toastService.info('Backend trenutno ne vraća portfolio ID, pa ova akcija još nije dostupna.');
+    if (typeof holdingId !== 'number') {
+      this.toastService.info('Backend trenutno ne vraca portfolio ID, pa ova akcija jo� nije dostupna.');
       return;
     }
 
     if (!Number.isFinite(value) || value < 0) {
-      this.toastService.error('Javna količina mora biti 0 ili veća.');
+      this.toastService.error('Javna kolicina mora biti 0 ili veca.');
       return;
     }
 
     if (value > holding.quantity) {
-      this.toastService.error('Javna količina ne može biti veća od ukupne količine.');
+      this.toastService.error('Javna kolicina ne mo�e biti veca od ukupne kolicine.');
       return;
     }
 
     this.savingPublicQuantity[key] = true;
 
     this.portfolioService
-      .setPublicQuantity(holding.id as number, { publicQuantity: value })
+      .setPublicQuantity(holdingId, { publicQuantity: value })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.toastService.success('Javna količina je uspešno ažurirana.');
-          this.loadPortfolio();
-        },
-        error: () => {
-          this.toastService.error('Nije moguće sačuvati javnu količinu.');
+          this.toastService.success('Javna kolicina je uspe�no a�urirana.');
+          holding.publicQuantity = value;
+          this.draftPublicQuantities[key] = value;
           this.savingPublicQuantity[key] = false;
+        },
+        error: (error) => {
+          console.error('Error saving public quantity:', error);
+          this.toastService.error('Nije moguce sacuvati javnu kolicinu.');
+          this.savingPublicQuantity[key] = false;
+          this.draftPublicQuantities[key] = holding.publicQuantity ?? 0;
         },
       });
   }
 
   exerciseOption(holding: PortfolioHolding, index: number): void {
     const key = this.getHoldingKey(holding, index);
+    const holdingId = holding.id;
 
-    if (!this.hasPortfolioActionId(holding)) {
-      this.toastService.info('Backend trenutno ne vraća portfolio ID, pa ova akcija još nije dostupna.');
+    if (typeof holdingId !== 'number') {
+      this.toastService.info('Backend trenutno ne vraca portfolio ID, pa ova akcija jo� nije dostupna.');
       return;
     }
 
     this.exercisingOption[key] = true;
 
     this.portfolioService
-      .exerciseOption(holding.id as number)
+      .exerciseOption(holdingId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.toastService.success('Opcija je uspešno iskorišćena.');
+          this.toastService.success('Opcija je uspe�no iskori�cena.');
           this.loadPortfolio();
         },
-        error: () => {
-          this.toastService.error('Nije moguće iskoristiti opciju.');
+        error: (error) => {
+          console.error('Error exercising option:', error);
+          this.toastService.error('Nije moguce iskoristiti opciju.');
           this.exercisingOption[key] = false;
         },
       });
@@ -165,7 +173,7 @@ export class PortfolioComponent implements OnInit, OnDestroy {
   getTypeLabel(type: PortfolioListingType): string {
     const labels: Record<PortfolioListingType, string> = {
       STOCK: 'Akcija',
-      FUTURES: 'Fjučers',
+      FUTURES: 'Fjucers',
       FOREX: 'Forex',
       OPTION: 'Opcija',
     };
