@@ -30,6 +30,8 @@ import { LoanRequestManagementComponent } from './features/employee/components/l
 import { LoanManagementComponent } from './features/employee/components/loan-management/loan-management.component';
 import { LoanRequestComponent } from './features/client/components/loan-request/loan-request.component';
 import { OrdersOverviewComponent } from './features/employee/components/orders-overview/orders-overview.component';
+import { PortfolioComponent } from './features/client/components/portfolio/portfolio.component';
+import { portfolioAccessGuard } from './core/guards/portfolio-access.guard';
 
 const routes: Routes = [
   {
@@ -177,6 +179,11 @@ const routes: Routes = [
     path: 'securities',
     component: SecuritiesListComponent,
     canActivate: [authGuard],
+  },
+  {
+    path: 'portfolio',
+    component: PortfolioComponent,
+    canActivate: [authGuard, portfolioAccessGuard],
   },
   {
     path: 'securities/stock/:ticker',
