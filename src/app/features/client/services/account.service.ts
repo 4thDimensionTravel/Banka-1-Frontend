@@ -26,14 +26,6 @@ export class AccountService {
         const mapped = res.content.map((item: any) =>
           this.mapToAccountFromClient(item),
         );
-        console.log(
-          'Loaded accounts with currencies:',
-          mapped.map((a: Account) => ({
-            name: a.name,
-            accountNumber: a.accountNumber,
-            currency: a.currency,
-          })),
-        );
         return mapped;
       }),
     );
