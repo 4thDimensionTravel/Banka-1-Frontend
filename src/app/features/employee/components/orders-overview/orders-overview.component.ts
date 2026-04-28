@@ -60,11 +60,8 @@ export class OrdersOverviewComponent implements OnInit {
   }
 
   get filteredOrders(): TradingOrder[] {
-    if (this.selectedFilter === 'ALL') {
-      return this.orders;
-    }
-
-    return this.orders.filter((order) => order.status === this.selectedFilter);
+    // Filtering is already done server-side via loadOrders(status, page, size).
+    return this.orders;
   }
 
   loadOrders(): void {
