@@ -114,9 +114,10 @@ const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: 'stock-exchange',
-    component: ExchangeListComponent,
-    canActivate: [authGuard],
+  path: 'stock-exchange',
+  component: ExchangeListComponent,
+  canActivate: [authGuard, roleGuard],
+  data: { roles: ['ADMIN', 'SUPERVISOR'] } 
   },
   {
     path: 'exchange',
